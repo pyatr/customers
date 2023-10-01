@@ -8,7 +8,10 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import org.json.simple.JSONArray;
@@ -88,22 +91,73 @@ public class Main {
         }
     }
 
+    private JSONObject GetLastName(String surname) {
+        String[] conditions = new String[] { ENTRY_SURNAME, "=", "'" + surname + "'" };
+        ResultSet result = this.GetData(SCHEMA_CUSTOMERS, conditions);
+        JSONObject container = new JSONObject();
+        JSONObject criteria = new JSONObject();
+        criteria.put("lastName", surname);
+        try {
+            JSONArray resultJsonArray = new JSONArray();
+            while (result.next()) {
+                HashMap<String, String> customersInResultMap = new HashMap<String, String>();
+                String currentName = result.getString(2);
+                String currentSurname = result.getString(3);
+                customersInResultMap.put("lastName", currentSurname);
+                customersInResultMap.put("firstName", currentName);
+                JSONObject customer = new JSONObject(customersInResultMap);
+                resultJsonArray.add(customer);
+            }
+            container.put("criteria", criteria);
+            container.put("results", resultJsonArray);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return container;
+    }
+
+    private JSONObject GetMinBought(String productName, int boughtCount) {
+        String[] conditions = new String[] {};
+        ResultSet result = this.GetData(SCHEMA_PURCHASES, conditions);
+        JSONObject container = new JSONObject();
+        JSONObject criteria = new JSONObject();
+        criteria.put("productName", productName);
+        criteria.put("minTimes", boughtCount);
+        try {
+            JSONArray resultJsonArray = new JSONArray();
+            while (result.next()) {
+                HashMap<String, String> customersInResultMap = new HashMap<String, String>();
+                String currentName = result.getString(2);
+                String currentSurname = result.getString(3);
+                customersInResultMap.put("lastName", currentSurname);
+                customersInResultMap.put("firstName", currentName);
+                JSONObject customer = new JSONObject(customersInResultMap);
+                resultJsonArray.add(customer);
+            }
+            container.put("criteria", criteria);
+            container.put("results", resultJsonArray);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return container;
+    }
+
     private void ParseJSON(Iterator<JSONObject> criteriaUnit) {
+        JSONArray resultArray = new JSONArray();
         while (criteriaUnit.hasNext()) {
             JSONObject currentCriteria = criteriaUnit.next();
             Set<String> keySet = currentCriteria.keySet();
-            // System.out.print("New criteria!\n");
             keySet.forEach(criteriaType -> {
-                Object keyvalue = currentCriteria.get(criteriaType);
-                // System.out.println("key: " + criteriaType + " value: " + keyvalue);
+                Object criteriaValue = currentCriteria.get(criteriaType);
                 switch (criteriaType) {
                     case "lastName":
-                        String[] conditions = new String[] { ENTRY_SURNAME, "=", "'" + (String) keyvalue + "'" };
-                        ResultSet result = this.GetData(SCHEMA_CUSTOMERS, conditions);
-                        this.PrintResultSet(result);
+                        resultArray.add(this.GetLastName((String) criteriaValue));
                         break;
                     case "productName":
                     case "minTimes":
+                        String productName = (String) currentCriteria.get("productName");
+                        Integer minBought = (Integer) currentCriteria.get("minTimes");
+                        resultArray.add(this.GetMinBought(productName, minBought));
                         break;
                     case "minExpenses":
                     case "maxExpenses":
@@ -115,7 +169,10 @@ public class Main {
                 }
             });
         }
-
+        JSONObject result = new JSONObject();
+        result.put("type", "search");
+        result.put("results", resultArray);
+        System.out.println(result);
     }
 
     public void OpenInput(String inputPath) {
