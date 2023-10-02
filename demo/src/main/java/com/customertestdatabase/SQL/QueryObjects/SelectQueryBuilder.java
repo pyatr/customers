@@ -1,23 +1,23 @@
-package com.customertestdatabase;
+package com.customertestdatabase.SQL.QueryObjects;
 
 import java.util.ArrayList;
-import java.util.List;
 
-class SelectQueryBuilder extends AbstractQueryBuilder {
-    private final static String[] EVERYTHING = new String[] { "*" };
+public class SelectQueryBuilder extends AbstractQueryBuilder {
 
     private String select = "";
     private String from = "";
     private String orderBy = "";
     private String limit = "";
-
     private String offset = "";
+    private String groupBy = "";
+    private String join = "";
+    private String on = "";
 
     public SelectQueryBuilder Select() {
-        return this.Select(EVERYTHING);
+        return this.Select("*");
     }
 
-    public SelectQueryBuilder Select(String[] fields) {
+    public SelectQueryBuilder Select(String... fields) {
         String fieldsAsString = "*";
 
         if (fields.length > 0) {
@@ -60,9 +60,22 @@ class SelectQueryBuilder extends AbstractQueryBuilder {
         return this;
     }
 
+    public SelectQueryBuilder Join(String joinType, String joinTableName, String[] on) {
+        this.join = "JOIN " + joinTableName;
+        if (joinType != "")
+            this.join = joinType + " " + this.join;
+        this.on = "ON " + String.join("", on);
+        return this;
+    }
+
+    public SelectQueryBuilder GroupBy(String field) {
+        this.groupBy = "GROUP BY " + field;
+        return this;
+    }
+
     @Override
     protected String[] GetRequestParts() {
-        String[] allParts = new String[] { this.select, this.from, this.where, this.orderBy, this.limit, this.offset };
+        String[] allParts = new String[] { select, from, join, on, where, or, orderBy, groupBy, limit, offset };
         ArrayList<String> realParts = new ArrayList<String>();
         for (String part : allParts) {
             if (!part.equals("")) {

@@ -1,6 +1,6 @@
-package com.customertestdatabase;
+package com.customertestdatabase.SQL.QueryObjects;
 
-class InsertQueryBuilder extends AbstractQueryBuilder {
+public class InsertQueryBuilder extends AbstractQueryBuilder {
     private String insert = "";
 
     public InsertQueryBuilder insert(String table, String[] columnNames, String[] values) {

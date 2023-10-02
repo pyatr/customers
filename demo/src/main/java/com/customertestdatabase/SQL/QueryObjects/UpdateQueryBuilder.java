@@ -1,6 +1,6 @@
-package com.customertestdatabase;
+package com.customertestdatabase.SQL.QueryObjects;
 
-class UpdateQueryBuilder extends AbstractQueryBuilder {
+public class UpdateQueryBuilder extends AbstractQueryBuilder {
     private String update = "";
 
     public UpdateQueryBuilder Update(String table, String[] columnNames, String[] values) {

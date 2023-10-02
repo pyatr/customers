@@ -1,6 +1,6 @@
-package com.customertestdatabase;
+package com.customertestdatabase.SQL.QueryObjects;
 
-class DeleteQueryBuilder extends AbstractQueryBuilder
+public class DeleteQueryBuilder extends AbstractQueryBuilder
 {
     private String delete = "";
 

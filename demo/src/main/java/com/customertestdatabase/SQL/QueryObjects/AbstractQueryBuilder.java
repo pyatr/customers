@@ -1,19 +1,25 @@
-package com.customertestdatabase;
+package com.customertestdatabase.SQL.QueryObjects;
 
 import java.util.Arrays;
 
 import org.codehaus.plexus.util.StringUtils;
 
-abstract class AbstractQueryBuilder {
+public abstract class AbstractQueryBuilder {
     protected String where = "";
+    protected String or = "";
 
-    public AbstractQueryBuilder Where(String[] conditions) {
+    public AbstractQueryBuilder Where(String... conditions) {
         String conditionsAsString = String.join(" ", conditions);
         if (conditions.length > 0) {
             this.where = "WHERE " + conditionsAsString;
         } else {
             this.where = "";
         }
+        return this;
+    }
+
+    public AbstractQueryBuilder Or(String... or) {
+        this.or = String.join(" ", or);
         return this;
     }
 
