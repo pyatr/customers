@@ -38,17 +38,17 @@ BEGIN
 			item_id SERIAL references customersschema.items(ID) NOT NULL,
 			purchase_date timestamp(0));
 		INSERT INTO customersschema.customers (person_name, surname) VALUES ('Иван','Петров');
+		INSERT INTO customersschema.customers (person_name, surname) VALUES ('Андрей','Иванов');
 		INSERT INTO customersschema.customers (person_name, surname) VALUES ('Петр','Иванов');
-		INSERT INTO customersschema.customers (person_name, surname) VALUES ('Василий','Петров');
-		INSERT INTO customersschema.customers (person_name, surname) VALUES ('Петр','Сидоров');
-		INSERT INTO customersschema.customers (person_name, surname) VALUES ('Василий','Иванов');
+		INSERT INTO customersschema.customers (person_name, surname) VALUES ('Сергей','Петров');
+		INSERT INTO customersschema.customers (person_name, surname) VALUES ('Алексей','Сидоров');
 		INSERT INTO customersschema.customers (person_name, surname) VALUES ('Сергей','Иванов');
-		INSERT INTO customersschema.customers (person_name, surname) VALUES ('Илья','Васильев');
+		INSERT INTO customersschema.customers (person_name, surname) VALUES ('Иван','Зайцев');
 		
 		INSERT INTO customersschema.items (item_name, item_price) VALUES ('Хлеб','22.00');
 		INSERT INTO customersschema.items (item_name, item_price) VALUES ('Яйца','80.50');
-		INSERT INTO customersschema.items (item_name, item_price) VALUES ('Масло','255.00');
-		INSERT INTO customersschema.items (item_name, item_price) VALUES ('Котлеты','200.00');
+		INSERT INTO customersschema.items (item_name, item_price) VALUES ('Котлеты','255.00');
+		INSERT INTO customersschema.items (item_name, item_price) VALUES ('Масло','200.00');
 		INSERT INTO customersschema.items (item_name, item_price) VALUES ('Пельмени','220.00');
 		INSERT INTO customersschema.items (item_name, item_price) VALUES ('Морковь','50.20');
 		INSERT INTO customersschema.items (item_name, item_price) VALUES ('Соль','15.45');
