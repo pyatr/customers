@@ -6,7 +6,7 @@ BEGIN
 	ELSE
 		CREATE EXTENSION IF NOT EXISTS dblink;
 		PERFORM dblink_exec('dbname=' || current_database(), 'DROP DATABASE IF EXISTS customersdb');
-		PERFORM dblink_exec('dbname=' || current_database(), 'CREATE DATABASE customersdb');
+		PERFORM dblink_exec('dbname=' || current_database(), 'CREATE DATABASE customersdb WITH TEMPLATE = template0 LOCALE "Russian_Russia.1251" ENCODING "WIN-1251"');
 	END IF;
 END
 $do$;
