@@ -4,8 +4,8 @@
             "lastName": "Иванов"
         },
         {
-            "productName": "Минеральная вода",
-            "minTimes": 5
+            "productName": "Котлеты",
+            "minTimes": 2
         },
         {
             "minExpenses": 112,
