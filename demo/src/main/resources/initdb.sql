@@ -77,6 +77,28 @@ BEGIN
 		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (1, 5, (NOW() - interval '4 days 4 hours')::timestamp(0));
 		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (5, 4, (NOW() - interval '5 days 6 hours')::timestamp(0));
 		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (4, 6, (NOW() - interval '5 days 7 hours')::timestamp(0));
+		
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (5, 7, (NOW() - interval '8 days 1 hour 11 minutes')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (7, 6, (NOW() - interval '8 days 1 hour 24 minutes')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (4, 5, (NOW() - interval '8 days 2 hours 47 minutes')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (2, 2, (NOW() - interval '8 days 5 hours 14 minutes')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (5, 1, (NOW() - interval '8 days 6 hours 1 minute')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (1, 2, (NOW() - interval '9 days 3 hours 45 minutes')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (6, 3, (NOW() - interval '9 days 4 hours 7 minutes')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (4, 3, (NOW() - interval '10 days 4 hours 30 minutes')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (5, 6, (NOW() - interval '10 days 2 hours 11 minutes')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (7, 5, (NOW() - interval '11 days 3 hours 24 minutes')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (1, 5, (NOW() - interval '11 days 4 hours 47 minutes')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (4, 4, (NOW() - interval '11 days 6 hours 14 minutes')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (5, 7, (NOW() - interval '12 days 15 minutes')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (1, 2, (NOW() - interval '13 days 3 hours')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (6, 1, (NOW() - interval '13 days 4 hours')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (4, 3, (NOW() - interval '13 days 4 hours')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (2, 5, (NOW() - interval '14 days 2 hours')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (3, 3, (NOW() - interval '14 days 3 hours')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (1, 5, (NOW() - interval '14 days 4 hours')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (5, 4, (NOW() - interval '15 days 6 hours')::timestamp(0));
+		INSERT INTO customersschema.purchases (customer_id, item_id, purchase_date) VALUES (4, 6, (NOW() - interval '15 days 7 hours')::timestamp(0));
 	END IF;
 END
 $do$;
