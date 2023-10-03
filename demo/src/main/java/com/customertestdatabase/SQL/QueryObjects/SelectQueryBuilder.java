@@ -12,6 +12,8 @@ public class SelectQueryBuilder extends AbstractQueryBuilder {
     private String groupBy = "";
     private String join = "";
     private String on = "";
+    private String in = "";
+    private String having = "";
 
     public SelectQueryBuilder Select() {
         return this.Select("*");
@@ -73,9 +75,27 @@ public class SelectQueryBuilder extends AbstractQueryBuilder {
         return this;
     }
 
+    public SelectQueryBuilder In(String... values) {
+        this.in = "IN (";
+        for (int i = 0; i < values.length; i++) {
+            this.in += "'" + values[i] + "'";
+            if (i < values.length - 1) {
+                this.in += ",";
+            }
+        }
+        this.in += ")";
+        return this;
+    }
+
+    public SelectQueryBuilder Having(String... values) {
+        this.having = String.join(" ", values);
+        return this;
+    }
+
     @Override
     protected String[] GetRequestParts() {
-        String[] allParts = new String[] { select, from, join, on, where, or, orderBy, groupBy, limit, offset };
+        String[] allParts = new String[] { select, from, join, on, where, in, or, orderBy, groupBy, having, limit,
+                offset };
         ArrayList<String> realParts = new ArrayList<String>();
         for (String part : allParts) {
             if (!part.equals("")) {

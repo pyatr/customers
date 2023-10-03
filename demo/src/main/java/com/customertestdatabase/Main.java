@@ -36,9 +36,7 @@ public class Main {
         try {
             Object obj = parser.parse(new FileReader(inputFilename));
             JSONObject jsonObject = (JSONObject) obj;
-            JSONArray criterias = (JSONArray) jsonObject.get("criterias");
 
-            Iterator<JSONObject> criteriaUnit = criterias.iterator();
             AbstractRequestParser requestParser = null;
             switch (operationType) {
                 case "search":
@@ -49,7 +47,7 @@ public class Main {
                     break;
             }
             if (requestParser != null)
-                requestParser.ParseJSON(criteriaUnit);
+                requestParser.ParseJSON(jsonObject);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {

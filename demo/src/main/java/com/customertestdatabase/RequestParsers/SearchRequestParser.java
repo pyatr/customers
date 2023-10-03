@@ -14,7 +14,6 @@ import com.customertestdatabase.SQL.Database;
 import com.customertestdatabase.SQL.Tables;
 import com.customertestdatabase.SQL.QueryObjects.SelectQueryBuilder;
 import com.customertestdatabase.SQL.TableEntries.Customers;
-import com.customertestdatabase.SQL.TableEntries.Items;
 import com.customertestdatabase.SQL.TableEntries.Purchases;
 
 public class SearchRequestParser extends AbstractRequestParser {
@@ -22,7 +21,9 @@ public class SearchRequestParser extends AbstractRequestParser {
         super(database, outputFilename);
     }
 
-    public void ParseJSON(Iterator<JSONObject> criteriaUnit) {
+    public void ParseJSON(JSONObject json) {
+        JSONArray criterias = (JSONArray) json.get("criterias");
+        Iterator<JSONObject> criteriaUnit = criterias.iterator();
         JSONArray resultArray = new JSONArray();
         while (criteriaUnit.hasNext()) {
             JSONObject currentCriteria = criteriaUnit.next();
@@ -39,11 +40,13 @@ public class SearchRequestParser extends AbstractRequestParser {
                         resultArray.add(this.GetMinBought(productName, minBought));
                         break;
                     case "minExpenses":
-                        // case "maxExpenses":
-
+                        Long minExpenses = (Long) currentCriteria.get("minExpenses");
+                        Long maxExpenses = (Long) currentCriteria.get("maxExpenses");
+                        resultArray.add(this.GetCustomersWithExpensesWithinRange(minExpenses, maxExpenses));
                         break;
                     case "badCustomers":
-
+                        Long badCustomers = (Long) currentCriteria.get("badCustomers");
+                        resultArray.add(this.GetCustomersThatBoughtLessThan(badCustomers));
                         break;
                 }
             });
@@ -52,83 +55,6 @@ public class SearchRequestParser extends AbstractRequestParser {
         result.put("type", GetOperationName());
         result.put("results", resultArray);
         this.WriteJSON(result, outputFilename);
-    }
-
-    private JSONObject GetCustomersWithLastName(String surname) {
-
-        SelectQueryBuilder queryBuilder = new SelectQueryBuilder();
-        String query = queryBuilder
-                .Select(Customers.NAME, Customers.SURNAME)
-                .From(Tables.CUSTOMERS)
-                .Where(Customers.SURNAME, "=", "'" + surname + "'")
-                .GetQuery();
-        ResultSet result = database.ExecuteQuery(query);
-
-        JSONObject container = new JSONObject();
-        JSONObject criteria = new JSONObject();
-        criteria.put("lastName", surname);
-        try {
-            JSONArray resultJsonArray = new JSONArray();
-            while (result.next()) {
-                HashMap<String, String> customersInResultMap = new HashMap<String, String>();
-                customersInResultMap.put("lastName", result.getString(Customers.NAME));
-                customersInResultMap.put("firstName", result.getString(Customers.SURNAME));
-                JSONObject customer = new JSONObject(customersInResultMap);
-                resultJsonArray.add(customer);
-            }
-            container.put("criteria", criteria);
-            container.put("results", resultJsonArray);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return container;
-    }
-
-    private Integer GetItemIDByProductName(String productName) {
-        SelectQueryBuilder queryBuilder = new SelectQueryBuilder();
-        String itemIDQuery = queryBuilder
-                .Select(Items.ID)
-                .From(Tables.ITEMS)
-                .Where(Items.ITEM_NAME, "=", "'" + productName + "'")
-                .GetQuery();
-
-        ResultSet result = database.ExecuteQuery(itemIDQuery);
-        Integer itemID = -1;
-        try {
-            while (result.next()) {
-                itemID = result.getInt(1);
-            }
-            return itemID;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return -1;
-    }
-
-    private Object[] GetCustomersBoughtTimes(Integer itemID, Long minBoughtCount) {
-        SelectQueryBuilder queryBuilder = new SelectQueryBuilder();
-        String customersThatBoughtQuery = queryBuilder
-                .Select(Purchases.CUSTOMER_ID, "COUNT(" + Purchases.CUSTOMER_ID + ")")
-                .From(Tables.PURCHASES)
-                .GroupBy(Purchases.CUSTOMER_ID)
-                .Where(Purchases.ITEM_ID, "=", "'" + itemID + "'")
-                .GetQuery();
-        ResultSet result = database.ExecuteQuery(customersThatBoughtQuery);
-
-        ArrayList<Integer> validIDs = new ArrayList<>(0);
-        ArrayList<Integer> allBoughtTimes = new ArrayList<>(0);
-        try {
-            while (result.next()) {
-                Integer boughtTimes = result.getInt(2);
-                if (boughtTimes >= minBoughtCount) {
-                    validIDs.add(result.getInt(Purchases.CUSTOMER_ID));
-                    allBoughtTimes.add(boughtTimes);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return new Object[] { validIDs, allBoughtTimes };
     }
 
     private JSONObject GetMinBought(String productName, Long minBoughtCount) {
@@ -153,38 +79,99 @@ public class SearchRequestParser extends AbstractRequestParser {
             return container;
         }
 
-        ArrayList<String> orConditions = new ArrayList<>();
-        for (int i = 1; i < validIDs.size(); i++) {
-            orConditions.add("OR");
-            orConditions.add(Customers.ID);
-            orConditions.add("=");
-            orConditions.add("'" + validIDs.get(i).toString() + "'");
+        ArrayList<String[]> customers = GetCustomersWithIDs(validIDs);
+
+        for (int i = 0; i < customers.size(); i++) {
+            HashMap<String, String> purchases = new HashMap<>();
+            purchases.put(Customers.NAME, customers.get(i)[0]);
+            purchases.put(Customers.SURNAME, customers.get(i)[1]);
+            purchases.put("bought_times", allBoughtTimes.get(i).toString());
+            JSONObject purchaseObject = new JSONObject(purchases);
+            resultJsonArray.add(purchaseObject);
         }
 
-        SelectQueryBuilder customersSurnamesQueryBuilder = new SelectQueryBuilder();
-        String customersSurnamesQuery = customersSurnamesQueryBuilder
-                .Select(Customers.NAME, Customers.SURNAME)
-                .From(Tables.CUSTOMERS)
-                .Where(Customers.ID, "=", "'" + validIDs.get(0).toString() + "'")
-                .Or(orConditions.toArray(new String[0]))
+        container.put("results", resultJsonArray);
+        return container;
+    }
+
+    private JSONObject GetCustomersWithExpensesWithinRange(Long minExpenses, Long maxExpenses) {
+        JSONObject container = new JSONObject();
+        JSONObject criteria = new JSONObject();
+        JSONArray resultJsonArray = new JSONArray();
+        criteria.put("minExpenses", minExpenses);
+        criteria.put("maxExpenses", maxExpenses);
+        container.put("criteria", criteria);
+
+        HashMap<Integer, Integer> moneySpentByCustomers = GetMoneySpentByCustomers();
+        Object[] customers = moneySpentByCustomers.keySet().toArray();
+        ArrayList<Integer> activeCustomerIDs = new ArrayList<>();
+        ArrayList<Integer> activeCustomerSpentMoney = new ArrayList<>();
+        for (int i = 0; i < moneySpentByCustomers.size(); i++) {
+            Integer spentByCustomer = moneySpentByCustomers.get(customers[i]);
+            if (spentByCustomer >= minExpenses && spentByCustomer <= maxExpenses) {
+                activeCustomerIDs.add(Integer.parseInt(customers[i].toString()));
+                activeCustomerSpentMoney.add(spentByCustomer);
+            }
+        }
+
+        ArrayList<String[]> activeCustomerData = GetCustomersWithIDs(activeCustomerIDs);
+        for (int i = 0; i < activeCustomerData.size(); i++) {
+            HashMap<String, String> purchases = new HashMap<>();
+            purchases.put(Customers.NAME, activeCustomerData.get(i)[0]);
+            purchases.put(Customers.SURNAME, activeCustomerData.get(i)[1]);
+            purchases.put("money_spent", activeCustomerSpentMoney.get(i).toString());
+            JSONObject purchaseObject = new JSONObject(purchases);
+            resultJsonArray.add(purchaseObject);
+        }
+
+        container.put("results", resultJsonArray);
+
+        return container;
+    }
+
+    private JSONObject GetCustomersThatBoughtLessThan(Long minBuyCount) {
+        JSONObject container = new JSONObject();
+        JSONObject criteria = new JSONObject();
+        JSONArray resultJsonArray = new JSONArray();
+        criteria.put("badCustomers", minBuyCount);
+        container.put("criteria", criteria);
+
+        SelectQueryBuilder queryBuilder = new SelectQueryBuilder();
+        String countCustomer = "COUNT(" + Purchases.CUSTOMER_ID + ")";
+        String query = queryBuilder
+                .Select(Purchases.CUSTOMER_ID, countCustomer)
+                .From(Tables.PURCHASES)
+                .GroupBy(Purchases.CUSTOMER_ID)
+                .Having("HAVING", countCustomer, "<=", minBuyCount.toString())
                 .GetQuery();
-        ResultSet result = database.ExecuteQuery(customersSurnamesQuery);
+
+        ResultSet result = database.ExecuteQuery(query);
+
+        ArrayList<Integer> ids = new ArrayList<>();
+        ArrayList<Integer> boughtThisMuch = new ArrayList<>();
 
         try {
-            int i = 0;
             while (result.next()) {
-                HashMap<String, String> purchases = new HashMap<String, String>();
-                purchases.put(Customers.NAME, result.getString(Customers.NAME));
-                purchases.put(Customers.SURNAME, result.getString(Customers.SURNAME));
-                purchases.put("bought_times", allBoughtTimes.get(i).toString());
-                JSONObject purchaseObject = new JSONObject(purchases);
-                resultJsonArray.add(purchaseObject);
-                i++;
+                ids.add(result.getInt(1));
+                boughtThisMuch.add(result.getInt(2));
             }
-            container.put("results", resultJsonArray);
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        ArrayList<String[]> customers = GetCustomersWithIDs(ids);
+
+        for (int i = 0; i < customers.size(); i++) {
+            HashMap<String, String> purchases = new HashMap<>();
+            purchases.put(Customers.NAME, customers.get(i)[0]);
+            purchases.put(Customers.SURNAME, customers.get(i)[1]);
+            purchases.put("bought_this_much", boughtThisMuch.get(i).toString());
+            JSONObject purchaseObject = new JSONObject(purchases);
+            resultJsonArray.add(purchaseObject);
+        }
+
+        container.put("results", resultJsonArray);
+
         return container;
     }
 

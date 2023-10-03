@@ -1,4 +1,6 @@
 {
+    "endDate": "2023-10-02",
+    "startDate": "2023-09-29",
     "criterias": [
         {
             "lastName": "Иванов"
@@ -8,11 +10,11 @@
             "minTimes": 2
         },
         {
-            "minExpenses": 112,
-            "maxExpenses": 4000
+            "minExpenses": 700,
+            "maxExpenses": 1300
         },
         {
-            "badCustomers": 3
+            "badCustomers": 5
         }
     ]
 }
