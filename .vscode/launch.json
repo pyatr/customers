@@ -13,7 +13,7 @@
             "request": "launch",
             "mainClass": "com.customertestdatabase.Main",
             "projectName": "demo",
-            "args": "stat input.json output.json"
+            "args": "search input.json output.json"
         }
     ]
 }

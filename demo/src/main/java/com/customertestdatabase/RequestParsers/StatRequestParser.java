@@ -30,6 +30,16 @@ public class StatRequestParser extends AbstractRequestParser {
             String startDate = (String) json.get("startDate");
             String endDate = (String) json.get("endDate");
 
+            if (startDate == null) {
+                ErrorPrinter.Print("No start date", outputFilename);
+                return;
+            }
+
+            if (endDate == null) {
+                ErrorPrinter.Print("No end date", outputFilename);
+                return;
+            }
+
             LocalDate d1 = LocalDate.parse(startDate, DateTimeFormatter.ISO_LOCAL_DATE);
             LocalDate d2 = LocalDate.parse(endDate, DateTimeFormatter.ISO_LOCAL_DATE);
             Duration diff = Duration.between(d1.atStartOfDay(), d2.atStartOfDay());
@@ -90,8 +100,15 @@ public class StatRequestParser extends AbstractRequestParser {
                 ErrorPrinter.Print(e.toString(), outputFilename);
             }
 
-            Integer totalExpenses = 0;
+            if (customers.size() == 0) {
+                result.put("customers", new JSONArray());
+                result.put("totalExpenses", 0);
+                result.put("avgExpenses", 0);
+                this.WriteJSON(result, outputFilename);
+                return;
+            }
 
+            Integer totalExpenses = 0;
             JSONArray customersArray = new JSONArray();
             Integer[] customersIDs = customers.keySet().toArray(new Integer[0]);
             ArrayList<String[]> customerData = GetCustomersWithIDs(new ArrayList<Integer>(Arrays.asList(customersIDs)));

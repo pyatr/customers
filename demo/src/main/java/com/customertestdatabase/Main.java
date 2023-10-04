@@ -1,5 +1,6 @@
 package com.customertestdatabase;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -31,6 +32,12 @@ public class Main {
     public void OpenInput(String operationType, String inputFilename, String outputFilename) {
         JSONParser parser = new JSONParser();
 
+        File f = new File(inputFilename);
+        if (!f.exists() || !f.isFile()) {
+            ErrorPrinter.Print("File at path " + inputFilename + " does not exist", outputFilename);
+            return;
+        }
+
         try {
             Object obj = parser.parse(new FileReader(inputFilename));
             JSONObject jsonObject = (JSONObject) obj;
@@ -46,6 +53,8 @@ public class Main {
             }
             if (requestParser != null)
                 requestParser.ParseJSON(jsonObject);
+            else
+                ErrorPrinter.Print("Unknown operation type " + operationType, outputFilename);
         } catch (FileNotFoundException e) {
             ErrorPrinter.Print(e.toString(), outputFilename);
         } catch (IOException e) {

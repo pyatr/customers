@@ -29,35 +29,6 @@ public abstract class AbstractRequestParser {
         this.outputFilename = outputFilename;
     }
 
-    protected JSONObject GetCustomersWithLastName(String surname) {
-        SelectQueryBuilder queryBuilder = new SelectQueryBuilder();
-        String query = queryBuilder
-                .Select(Customers.NAME, Customers.SURNAME)
-                .From(Tables.CUSTOMERS)
-                .Where(Customers.SURNAME, "=", "'" + surname + "'")
-                .GetQuery();
-        ResultSet result = database.ExecuteQuery(query);
-
-        JSONObject container = new JSONObject();
-        JSONObject criteria = new JSONObject();
-        criteria.put("lastName", surname);
-        try {
-            JSONArray resultJsonArray = new JSONArray();
-            while (result.next()) {
-                HashMap<String, String> customersInResultMap = new HashMap<String, String>();
-                customersInResultMap.put("lastName", result.getString(Customers.NAME));
-                customersInResultMap.put("firstName", result.getString(Customers.SURNAME));
-                JSONObject customer = new JSONObject(customersInResultMap);
-                resultJsonArray.add(customer);
-            }
-            container.put("criteria", criteria);
-            container.put("results", resultJsonArray);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return container;
-    }
-
     protected Object[] GetCustomersBoughtTimes(Integer itemID, Long minBoughtCount) {
         SelectQueryBuilder queryBuilder = new SelectQueryBuilder();
         String customersThatBoughtQuery = queryBuilder
@@ -110,23 +81,25 @@ public abstract class AbstractRequestParser {
         for (int i = 0; i < ids.size(); i++) {
             inConditions.add(ids.get(i).toString());
         }
-
-        SelectQueryBuilder customersSurnamesQueryBuilder = new SelectQueryBuilder();
-        String customersSurnamesQuery = customersSurnamesQueryBuilder
-                .Select(Customers.NAME, Customers.SURNAME)
-                .From(Tables.CUSTOMERS)
-                .In(inConditions.toArray(new String[0]))
-                .Where(Customers.ID)
-                .GetQuery();
-        ResultSet result = database.ExecuteQuery(customersSurnamesQuery);
-
         ArrayList<String[]> customers = new ArrayList<String[]>();
-        try {
-            while (result.next()) {
-                customers.add(new String[] { result.getString(Customers.NAME), result.getString(Customers.SURNAME) });
+        if (ids.size() > 0) {
+            SelectQueryBuilder customersSurnamesQueryBuilder = new SelectQueryBuilder();
+            String customersSurnamesQuery = customersSurnamesQueryBuilder
+                    .Select(Customers.NAME, Customers.SURNAME)
+                    .From(Tables.CUSTOMERS)
+                    .In(inConditions.toArray(new String[0]))
+                    .Where(Customers.ID)
+                    .GetQuery();
+            ResultSet result = database.ExecuteQuery(customersSurnamesQuery);
+
+            try {
+                while (result.next()) {
+                    customers.add(
+                            new String[] { result.getString(Customers.NAME), result.getString(Customers.SURNAME) });
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return customers;
     }
