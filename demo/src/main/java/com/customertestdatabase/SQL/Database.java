@@ -48,7 +48,6 @@ public class Database {
         }
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
-            System.out.println(query);
             return preparedStatement.executeQuery();
         } catch (Exception ex) {
             System.out.println(ex);

@@ -10,6 +10,7 @@ import java.util.Set;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import com.customertestdatabase.ErrorPrinter;
 import com.customertestdatabase.SQL.Database;
 import com.customertestdatabase.SQL.Tables;
 import com.customertestdatabase.SQL.QueryObjects.SelectQueryBuilder;
@@ -22,39 +23,51 @@ public class SearchRequestParser extends AbstractRequestParser {
     }
 
     public void ParseJSON(JSONObject json) {
-        JSONArray criterias = (JSONArray) json.get("criterias");
-        Iterator<JSONObject> criteriaUnit = criterias.iterator();
-        JSONArray resultArray = new JSONArray();
-        while (criteriaUnit.hasNext()) {
-            JSONObject currentCriteria = criteriaUnit.next();
-            Set<String> keySet = currentCriteria.keySet();
-            keySet.forEach(criteriaType -> {
-                Object criteriaValue = currentCriteria.get(criteriaType);
-                switch (criteriaType) {
-                    case "lastName":
-                        resultArray.add(this.GetCustomersWithLastName((String) criteriaValue));
-                        break;
-                    case "productName":
-                        String productName = (String) currentCriteria.get("productName");
-                        Long minBought = (Long) currentCriteria.get("minTimes");
-                        resultArray.add(this.GetMinBought(productName, minBought));
-                        break;
-                    case "minExpenses":
-                        Long minExpenses = (Long) currentCriteria.get("minExpenses");
-                        Long maxExpenses = (Long) currentCriteria.get("maxExpenses");
-                        resultArray.add(this.GetCustomersWithExpensesWithinRange(minExpenses, maxExpenses));
-                        break;
-                    case "badCustomers":
-                        Long badCustomers = (Long) currentCriteria.get("badCustomers");
-                        resultArray.add(this.GetCustomersThatBoughtLessThan(badCustomers));
-                        break;
-                }
-            });
+        try {
+            JSONArray criterias = (JSONArray) json.get("criterias");
+            Iterator<JSONObject> criteriaUnit = criterias.iterator();
+            JSONArray resultArray = new JSONArray();
+            while (criteriaUnit.hasNext()) {
+                JSONObject currentCriteria = criteriaUnit.next();
+                Set<String> keySet = currentCriteria.keySet();
+                keySet.forEach(criteriaType -> {
+                    Object criteriaValue = currentCriteria.get(criteriaType);
+                    switch (criteriaType) {
+                        case "lastName":
+                            resultArray.add(this.GetCustomersWithLastName((String) criteriaValue));
+                            break;
+                        case "productName":
+                            String productName = (String) currentCriteria.get("productName");
+                            Long minBought = (Long) currentCriteria.get("minTimes");
+                            resultArray.add(this.GetMinBought(productName, minBought));
+                            break;
+                        case "minExpenses":
+                            Long minExpenses = (Long) currentCriteria.get("minExpenses");
+                            Long maxExpenses = (Long) currentCriteria.get("maxExpenses");
+                            if (maxExpenses < minExpenses) {
+                                ErrorPrinter.Print(
+                                        "Min expenses bigger than max expenses (" + maxExpenses + "<" + minExpenses
+                                                + ")",
+                                        outputFilename);
+                            } else {
+                                resultArray.add(this.GetCustomersWithExpensesWithinRange(minExpenses, maxExpenses));
+                            }
+                            break;
+                        case "badCustomers":
+                            Long badCustomers = (Long) currentCriteria.get("badCustomers");
+                            resultArray.add(this.GetCustomersThatBoughtLessThan(badCustomers));
+                            break;
+                    }
+                });
+            }
+            JSONObject result = new JSONObject();
+            result.put("type", GetOperationName());
+            result.put("results", resultArray);
+            this.WriteJSON(result, outputFilename);
+        } catch (Exception e) {
+            ErrorPrinter.Print(e.toString(), outputFilename);
+            return;
         }
-        JSONObject result = new JSONObject();
-        result.put("type", GetOperationName());
-        result.put("results", resultArray);
-        this.WriteJSON(result, outputFilename);
     }
 
     private JSONObject GetMinBought(String productName, Long minBoughtCount) {

@@ -9,11 +9,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import com.customertestdatabase.ErrorPrinter;
 import com.customertestdatabase.SQL.Database;
 import com.customertestdatabase.SQL.Tables;
 import com.customertestdatabase.SQL.QueryObjects.SelectQueryBuilder;
@@ -188,6 +187,25 @@ public abstract class AbstractRequestParser {
         return price;
     }
 
+    protected String GetItemName(Integer itemID) {
+        String name = "";
+        SelectQueryBuilder queryBuilder = new SelectQueryBuilder();
+        String query = queryBuilder
+                .Select(Items.ITEM_NAME)
+                .From(Tables.ITEMS)
+                .Where(Items.ID, "=", itemID.toString())
+                .GetQuery();
+        ResultSet result = database.ExecuteQuery(query);
+        try {
+            while (result.next()) {
+                name = result.getString(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return name;
+    }
+
     protected HashMap<Integer, Integer> GetMoneySpentByCustomers() {
         HashMap<Integer, Integer> customerPurchasedAmount = new HashMap<>();
         HashMap<Integer, Integer> itemPrices = new HashMap<>();
@@ -215,7 +233,6 @@ public abstract class AbstractRequestParser {
     protected abstract String GetOperationName();
 
     protected void WriteJSON(JSONObject json, String outputFilename) {
-
         Writer fstream = null;
         try {
             fstream = new OutputStreamWriter(new FileOutputStream(outputFilename), StandardCharsets.UTF_8);
@@ -223,6 +240,7 @@ public abstract class AbstractRequestParser {
             fstream.close();
         } catch (IOException e) {
             e.printStackTrace();
+            ErrorPrinter.Print(e.toString(), outputFilename);
         }
     }
 }
